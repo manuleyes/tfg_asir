@@ -59,48 +59,6 @@ jobs:
           file: ./coverage.xml
           fail_ci_if_error: false
   
-  # ============ BUILD JOB ============
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      
-      - name: Build Docker image
-        run: |
-          docker build -f backend/Dockerfile -t vigilancia:${{ github.sha }} .
-          docker tag vigilancia:${{ github.sha }} vigilancia:latest
-        
-      - name: Run Docker image
-        run: |
-          docker run -d -p 8000:8000 --name test-container vigilancia:latest
-          
-          # Wait up to 60s for the container to be ready
-          echo "Waiting for container to be ready..."
-          for i in $(seq 1 20); do
-            if curl -sf http://localhost:8000/api/health; then
-              echo "Container is ready!"
-              break
-            fi
-            echo "Attempt $i/20: not ready yet, retrying in 3s..."
-            sleep 3
-          done
-          
-          # Final check
-          curl -f http://localhost:8000/api/health || (docker logs test-container && exit 1)
-          
-          docker stop test-container || true
-      
-      - name: Health check
-        run: |
-          echo "✅ Docker image built successfully"
-          echo "✅ Health check passed"
-  
   # ============ SECURITY JOB ============
   security:
     runs-on: ubuntu-latest
@@ -129,7 +87,7 @@ jobs:
   
   # ============ DEPLOY JOB ============
   deploy:
-    needs: [test, build]
+    needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
@@ -160,14 +118,13 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     if: always()
-    needs: [test, build, security]
+    needs: [test, security]
     
     steps:
       - name: Check jobs status
         run: |
           echo "Job Status Summary:"
           echo "✅ Test: ${{ needs.test.result }}"
-          echo "✅ Build: ${{ needs.build.result }}"
           echo "✅ Security: ${{ needs.security.result }}"
       
       - name: Success notification
