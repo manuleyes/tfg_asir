@@ -73,7 +73,7 @@ jobs:
       
       - name: Build Docker image
         run: |
-          docker build -t vigilancia:${{ github.sha }} .
+          docker build -f backend/Dockerfile -t vigilancia:${{ github.sha }} .
           docker tag vigilancia:${{ github.sha }} vigilancia:latest
         
       - name: Run Docker image
