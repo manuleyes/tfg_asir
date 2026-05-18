@@ -2,6 +2,7 @@
 Endpoint para recibir camera streaming por HTTP
 Mejor que UDP para WiFi/NAT
 """
+from __future__ import annotations
 
 import base64
 import io
