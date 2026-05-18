@@ -79,10 +79,20 @@ jobs:
       - name: Run Docker image
         run: |
           docker run -d -p 8000:8000 --name test-container vigilancia:latest
-          sleep 5
           
-          # Test health check
-          curl -f http://localhost:8000/api/health || exit 1
+          # Wait up to 60s for the container to be ready
+          echo "Waiting for container to be ready..."
+          for i in $(seq 1 20); do
+            if curl -sf http://localhost:8000/api/health; then
+              echo "Container is ready!"
+              break
+            fi
+            echo "Attempt $i/20: not ready yet, retrying in 3s..."
+            sleep 3
+          done
+          
+          # Final check
+          curl -f http://localhost:8000/api/health || (docker logs test-container && exit 1)
           
           docker stop test-container || true
       
