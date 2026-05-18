@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detección en Vivo - IA/ML</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Detección en Vivo - IA/ML Real-Time</h1>
+        
+        <div class="info-panel">
+            <strong>Estado del Sistema:</strong> 
+            <span id="status" class="badge badge-warning">Cargando...</span>
+            <br>
+            <small>
+                YOLO v8 + TensorFlow + DeepFace + LSTM
+            </small>
+        </div>
+        
+        <div class="grid">
+            <!-- Webcam Feed -->
+            <div class="card">
+                <h2>Video en Vivo</h2>
+                <video id="video" playsinline autoplay></video>
+                <div class="controls">
+                    <button class="btn-primary" onclick="startVideo()">Iniciar Cámara</button>
+                    <button class="btn-danger" onclick="stopVideo()">Detener</button>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-row">
+                        <span class="stat-label">FPS:</span>
+                        <span class="stat-value" id="fps">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Latencia:</span>
+                        <span class="stat-value" id="latency">0ms</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Frames Procesados:</span>
+                        <span class="stat-value" id="frameCount">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detection Results -->
+            <div class="card">
+                <h2>Resultados de Detección</h2>
+                <div class="stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Caras Detectadas:</span>
+                        <span class="stat-value" id="facesDetected">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Vehículos Detectados:</span>
+                        <span class="stat-value" id="vehiclesDetected">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Personas Detectadas:</span>
+                        <span class="stat-value" id="peopleDetected">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Última Detección:</span>
+                        <span class="stat-value" id="lastDetection">-</span>
+                    </div>
+                </div>
+                
+                <div class="controls controls-margin-top">
+                    <button class="btn-primary" onclick="captureAndDetect()">Capturar y Procesar</button>
+                </div>
+                
+                <div class="log">
+                    <div class="log-entry log-info">Sistema iniciado - Esperando video...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Canvas Oculto -->
+        <canvas id="canvas" class="hidden"></canvas>
+    </div>
+
+    <script src="/static/js/session-check.js" defer></script>
+    <script src="/static/js/live-detection.js" defer></script>
+    <script src="/static/js/auth-init.js" defer></script>
+</body>
+</html>

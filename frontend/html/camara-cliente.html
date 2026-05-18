@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Camara Cliente</title>
+    <link rel="stylesheet" href="/static/css/camara-cliente.css">
+</head>
+<body>
+<header>
+    <h1 data-i18n="camaraClienteTitle">Camara Cliente</h1>
+    <div style="display:flex;align-items:center;gap:8px;">
+        <div class="lang-switcher">
+            <button class="lang-btn" id="lbEs" onclick="switchLang('es')">ES</button>
+            <button class="lang-btn" id="lbEn" onclick="switchLang('en')">EN</button>
+            <button class="lang-btn" id="lbJp" onclick="switchLang('jp')">JP</button>
+        </div>
+        <span id="statusBadge" class="badge">Inactivo</span>
+    </div>
+</header>
+
+<div class="main">
+    <video id="localVideo" autoplay muted playsinline></video>
+    <canvas id="captureCanvas"></canvas>
+
+    <!-- Config -->
+    <div class="config">
+        <div>
+            <label data-i18n="idCamara">ID de cámara</label>
+            <div class="camera-id-row">
+                <input type="text" id="cameraId" value="mobile-1" maxlength="30">
+            </div>
+        </div>
+        <div>
+            <label data-i18n="camaraLabel">Cámara</label>
+            <select id="facingMode">
+                <option value="user" data-i18n="frontal">Frontal</option>
+                <option value="environment" selected data-i18n="trasera">Trasera</option>
+            </select>
+        </div>
+        <div>
+            <label data-i18n="calidadJpeg">Calidad JPEG</label>
+            <div class="fps-row">
+                <input type="range" id="quality" min="30" max="95" value="70" step="5">
+                <span id="qualityVal">70</span>%
+            </div>
+        </div>
+        <div>
+            <label data-i18n="fpsObjetivo">FPS objetivo</label>
+            <div class="fps-row">
+                <input type="range" id="fpsRange" min="1" max="15" value="5" step="1">
+                <span id="fpsVal">5</span> fps
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button class="btn-start" id="btnStart" onclick="startStream()" data-i18n="iniciarTransmision">Iniciar transmision</button>
+        <button class="btn-flip" onclick="flipCamera()" data-i18n="cambiarCamara">Cambiar camara</button>
+        <button class="btn-stop" id="btnStop" onclick="stopStream()" disabled data-i18n="detener">Detener</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat-item">
+            <span class="stat-label" data-i18n="framesEnviados">Frames enviados</span>
+            <span class="stat-value" id="statFrames">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label" data-i18n="fpsReal">FPS real</span>
+            <span class="stat-value" id="statFps">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label" data-i18n="kbEnviados">KB enviados</span>
+            <span class="stat-value" id="statKb">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label" data-i18n="errores">Errores</span>
+            <span class="stat-value" id="statErr">0</span>
+        </div>
+    </div>
+
+    <div class="log" id="logBox">Esperando...</div>
+</div>
+
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/camara-cliente.js"></script>
+</body>
+</html>

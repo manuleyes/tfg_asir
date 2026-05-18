@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Línea Temporal - Vigilancia Inteligente</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 22px 24px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow);
+    }
+    .tl-controls h2 {
+        margin: 0 0 16px;
+        font-size: 15px;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .tl-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+    }
+    .tl-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+        min-width: 180px;
+    }
+    .tl-field label {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+    .tl-field input[type="datetime-local"] {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-secondary, #f8f9fa);
+        color: var(--text);
+        font-size: 14px;
+        outline: none;
+        transition: border-color .2s;
+    }
+    .tl-field input[type="datetime-local"]:focus { border-color: var(--primary); }
+    body.dark-mode .tl-field input[type="datetime-local"] { background: #1a2942; border-color: #2a3a5a; color: #e0e0e0; }
+
+    .tl-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 16px 0 0;
+    }
+    .tl-chip {
+        padding: 5px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: var(--bg-secondary, #f0f0f0);
+        font-size: 12px;
+        cursor: pointer;
+        transition: all .15s;
+        color: var(--text);
+    }
+    .tl-chip:hover, .tl-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    body.dark-mode .tl-chip { background: #1a2942; border-color: #2a3a5a; }
+
+    .tl-types {
+        display: flex;
+        gap: 16px;
+        margin: 14px 0 0;
+        flex-wrap: wrap;
+    }
+    .tl-type-cb { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+    .tl-type-cb input { accent-color: var(--primary); width: 15px; height: 15px; }
+
+    .tl-btn {
+        padding: 9px 22px;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity .15s;
+        white-space: nowrap;
+        align-self: flex-end;
+    }
+    .tl-btn:hover { opacity: .88; }
+    .tl-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Summary strip ── */
+    .tl-summary {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    .tl-summary-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+    }
+    .tl-summary-badge .dot { width: 9px; height: 9px; border-radius: 50%; }
+    .dot-alerta-critical { background: #e74c3c; }
+    .dot-alerta-warning  { background: #f39c12; }
+    .dot-alerta-info     { background: #3498db; }
+    .dot-persona         { background: #2ecc71; }
+    .dot-vehiculo        { background: #9b59b6; }
+
+    /* ── Timeline list ── */
+    .tl-list {
+        position: relative;
+        padding-left: 28px;
+    }
+    .tl-list::before {
+        content: '';
+        position: absolute;
+        left: 9px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--border);
+        border-radius: 2px;
+    }
+    .tl-item {
+        position: relative;
+        margin-bottom: 14px;
+        padding: 14px 16px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        transition: border-color .2s;
+    }
+    .tl-item:hover { border-color: var(--primary); }
+    .tl-item::before {
+        content: '';
+        position: absolute;
+        left: -24px;
+        top: 18px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid var(--card-bg);
+        box-sizing: border-box;
+    }
+    .tl-item[data-type="alerta"][data-sev="critical"]::before  { background: #e74c3c; }
+    .tl-item[data-type="alerta"][data-sev="warning"]::before   { background: #f39c12; }
+    .tl-item[data-type="alerta"][data-sev="info"]::before      { background: #3498db; }
+    .tl-item[data-type="persona"]::before  { background: #2ecc71; }
+    .tl-item[data-type="vehiculo"]::before { background: #9b59b6; }
+
+    .tl-item-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 4px;
+    }
+    .tl-item-time {
+        font-size: 11px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        font-family: monospace;
+    }
+    .tl-item-tag {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 4px;
+        letter-spacing: .06em;
+    }
+    .tag-alerta-critical { background: #fde8e8; color: #c0392b; }
+    .tag-alerta-warning  { background: #fef5e7; color: #ca8a04; }
+    .tag-alerta-info     { background: #e8f4fd; color: #1a6ea5; }
+    .tag-persona         { background: #e8fdf0; color: #1a7a3c; }
+    .tag-vehiculo        { background: #f2e8fd; color: #7e3ab6; }
+    body.dark-mode .tag-alerta-critical { background: #3a1a1a; color: #f87171; }
+    body.dark-mode .tag-alerta-warning  { background: #3a2a0a; color: #fbbf24; }
+    body.dark-mode .tag-alerta-info     { background: #1a2a3a; color: #60a5fa; }
+    body.dark-mode .tag-persona         { background: #1a3a2a; color: #4ade80; }
+    body.dark-mode .tag-vehiculo        { background: #2a1a3a; color: #c084fc; }
+
+    .tl-item-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .tl-item-detail { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    .tl-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+        font-size: 15px;
+    }
+    .tl-empty svg { display: block; margin: 0 auto 14px; opacity: .3; }
+
+
+<body>
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2 data-i18n="panel">Panel</h2>
+            <button id="toggleSidebar" class="btn-menu"></button>
+        </div>
+        <nav class="nav-menu">
+            <a href="/dashboard" class="nav-item"><span class="text" data-i18n="dashboard">Dashboard</span></a>
+            <a href="/camaras" class="nav-item"><span class="text" data-i18n="camaras">Cámaras</span></a>
+            <a href="/personas" class="nav-item"><span class="text" data-i18n="personas">Personas</span></a>
+            <a href="/vehiculos" class="nav-item"><span class="text" data-i18n="vehiculos">Vehículos</span></a>
+            <a href="/alertas" class="nav-item"><span class="text" data-i18n="alertas">Alertas</span></a>
+            <a href="/bd" class="nav-item"><span class="text" data-i18n="baseDatos">Base de Datos</span></a>
+            <a href="/reportes" class="nav-item"><span class="text" data-i18n="reportes">Reportes</span></a>
+            <a href="/diagnostico" class="nav-item"><span class="text" data-i18n="diagnostico">Diagnóstico</span></a>
+        </nav>
+        <div class="sidebar-footer"></div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <h1 data-i18n="lineaTemporal">&#128336; Línea Temporal</h1>
+            </div>
+            <div class="top-bar-right">
+                <div class="menu-container">
+                    <button id="languageBtn" class="icon-btn" title="Idioma">
+                        <img id="langFlagDisplay" src="/static/img/flag-es.svg" alt="Idioma" class="btn-icon">
+                    </button>
+                    <div id="languageDropdown" class="dropdown hidden">
+                        <button class="dropdown-item" data-lang="es"><img src="/static/img/flag-es.svg" alt="ES" class="flag-small"> Español</button>
+                        <button class="dropdown-item" data-lang="en"><img src="/static/img/flag-en.svg" alt="EN" class="flag-small"> English</button>
+                        <button class="dropdown-item" data-lang="jp"><img src="/static/img/flag-jp.svg" alt="JP" class="flag-small"> 日本語</button>
+                    </div>
+                </div>
+                <div class="menu-container">
+                    <button id="darkModeToggle" class="icon-btn" title="Tema">
+                        <img id="themeIcon" src="/static/img/moon.svg" alt="Tema" class="btn-icon">
+                    </button>
+                </div>
+                <div class="menu-container">
+                    <button id="profileBtn" class="icon-btn" title="Cuenta">
+                        <img src="/static/img/profile.svg" alt="Perfil" class="btn-icon">
+                    </button>
+                    <div id="profileDropdown" class="dropdown hidden">
+                        <a class="dropdown-item" href="/perfil" data-i18n="verPerfil">Ver perfil</a>
+                        <button class="dropdown-item logout-item" id="logoutBtn" data-i18n="cerrarSesion">Cerrar sesión</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+
+            <!-- Controls card -->
+            <div class="tl-controls">
+                <h2>&#128197; <span data-i18n="seleccionarRango">Seleccionar rango de tiempo</span></h2>
+
+                <!-- Quick shortcuts -->
+                <div class="tl-chips">
+                    <button class="tl-chip" data-preset="1h">Última hora</button>
+                    <button class="tl-chip" data-preset="6h">Últimas 6h</button>
+                    <button class="tl-chip" data-preset="24h">Últimas 24h</button>
+                    <button class="tl-chip" data-preset="yesterday">Ayer</button>
+                    <button class="tl-chip" data-preset="today">Hoy</button>
+                    <button class="tl-chip" data-preset="7d">Últimos 7 días</button>
+                </div>
+
+                <div class="tl-row" style="margin-top:16px;">
+                    <div class="tl-field">
+                        <label data-i18n="desdeLabel">Desde</label>
+                        <input type="datetime-local" id="tlSince" step="60">
+                    </div>
+                    <div class="tl-field">
+                        <label data-i18n="hastaLabel">Hasta</label>
+                        <input type="datetime-local" id="tlUntil" step="60">
+                    </div>
+                    <button class="tl-btn" id="tlSearch">&#128269; Buscar</button>
+                </div>
+
+                <!-- Type filters -->
+                <div class="tl-types">
+                    <label class="tl-type-cb">
+                        <input type="checkbox" id="cbAlertas" checked> <span data-i18n="alertas">Alertas</span>
+                    </label>
+                    <label class="tl-type-cb">
+                        <input type="checkbox" id="cbPersonas" checked> <span data-i18n="personas">Personas</span>
+                    </label>
+                    <label class="tl-type-cb">
+                        <input type="checkbox" id="cbVehiculos" checked> <span data-i18n="vehiculos">Vehículos</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="tl-summary" id="tlSummary" style="display:none;"></div>
+
+            <!-- Results -->
+            <div id="tlResults">
+                <div class="tl-empty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+                    Selecciona un rango y pulsa Buscar
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script src="/static/js/session-check.js" defer></script>
+<script src="/static/js/language.js" defer></script>
+<script src="/static/js/darkmode.js" defer></script>
+<script src="/static/js/sidebar-toggle.js" defer></script>
+<script src="/static/js/auth.js" defer></script>
+<script src="/static/js/timeline-page.js" defer></script>
+    await requireAuth?.();
+
+    // ── Helpers datetime-local ──────────────────────────────────────────────
+    function toLocal(dt) {
+        // dt: Date → "YYYY-MM-DDTHH:MM" in local timezone for datetime-local input
+        const pad = n => String(n).padStart(2, '0');
+        return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+    }
+    function setRange(since, until) {
+        document.getElementById('tlSince').value = toLocal(since);
+        document.getElementById('tlUntil').value = toLocal(until);
+    }
+
+    // Presets
+    const presets = {
+        '1h':       () => { const n=new Date(); setRange(new Date(n-3600000), n); },
+        '6h':       () => { const n=new Date(); setRange(new Date(n-6*3600000), n); },
+        '24h':      () => { const n=new Date(); setRange(new Date(n-86400000), n); },
+        'today':    () => { const n=new Date(); const s=new Date(n); s.setHours(0,0,0,0); setRange(s, n); },
+        'yesterday':() => {
+            const n=new Date(); n.setHours(0,0,0,0);
+            const s=new Date(n); s.setDate(s.getDate()-1);
+            const e=new Date(n); e.setSeconds(-1);
+            setRange(s, e);
+        },
+        '7d': () => { const n=new Date(); setRange(new Date(n-7*86400000), n); },
+    };
+
+    document.querySelectorAll('.tl-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tl-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            presets[btn.dataset.preset]?.();
+        });
+    });
+
+    // Default: last 24h
+    presets['24h']();
+    document.querySelector('[data-preset="24h"]').classList.add('active');
+
+    // ── Search ──────────────────────────────────────────────────────────────
+    document.getElementById('tlSearch').addEventListener('click', doSearch);
+
+    async function doSearch() {
+        const since = document.getElementById('tlSince').value;
+        const until = document.getElementById('tlUntil').value;
+        if (!since || !until) { alert('Selecciona fecha de inicio y fin'); return; }
+
+        const types = [];
+        if (document.getElementById('cbAlertas').checked)   types.push('alertas');
+        if (document.getElementById('cbPersonas').checked)  types.push('personas');
+        if (document.getElementById('cbVehiculos').checked) types.push('vehiculos');
+        if (!types.length) { alert('Selecciona al menos un tipo de evento'); return; }
+
+        const btn = document.getElementById('tlSearch');
+        btn.disabled = true;
+        btn.textContent = 'Buscando...';
+
+        document.getElementById('tlResults').innerHTML = '<div class="tl-loading">Cargando eventos...</div>';
+        document.getElementById('tlSummary').style.display = 'none';
+
+        try {
+            // Convert local datetime-local value (YYYY-MM-DDTHH:MM) to ISO string for backend
+            const sinceISO = since + ':00';
+            const untilISO = until + ':00';
+
+            const res = await fetch(
+                `/api/timeline?since=${encodeURIComponent(sinceISO)}&until=${encodeURIComponent(untilISO)}&types=${types.join(',')}`,
+                { credentials: 'include' }
+            );
+
+            if (!res.ok) {
+                const err = await res.json().catch(()=>({detail:'Error desconocido'}));
+                document.getElementById('tlResults').innerHTML = `<div class="tl-empty" style="color:#e74c3c;">Error: ${err.detail || res.status}</div>`;
+                return;
+            }
+
+            const data = await res.json();
+            renderResults(data);
+        } catch (e) {
+            document.getElementById('tlResults').innerHTML = `<div class="tl-empty" style="color:#e74c3c;">Error de conexión: ${e.message}</div>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '🔍 Buscar';
+        }
+    }
+
+    // ── Render ───────────────────────────────────────────────────────────────
+    function renderResults(data) {
+        const summaryEl = document.getElementById('tlSummary');
+        const resultsEl = document.getElementById('tlResults');
+
+        if (!data.events || data.events.length === 0) {
+            summaryEl.style.display = 'none';
+            resultsEl.innerHTML = `
+                <div class="tl-empty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 11H11V7h2v6zm0 4h-2v-2h2v2z"/></svg>
+                    No se encontraron eventos en el rango seleccionado
+                </div>`;
+            return;
+        }
+
+        // Summary counts
+        const counts = {};
+        data.events.forEach(e => {
+            const key = e.type === 'alerta' ? `alerta-${e.severity}` : e.type;
+            counts[key] = (counts[key] || 0) + 1;
+        });
+
+        const badgeCfg = [
+            { key: 'alerta-critical', dot: 'dot-alerta-critical', label: '🔴 Críticas' },
+            { key: 'alerta-warning',  dot: 'dot-alerta-warning',  label: '🟠 Advertencias' },
+            { key: 'alerta-info',     dot: 'dot-alerta-info',     label: '🔵 Informativas' },
+            { key: 'persona',         dot: 'dot-persona',         label: '🟢 Personas' },
+            { key: 'vehiculo',        dot: 'dot-vehiculo',        label: '🟣 Vehículos' },
+        ];
+        summaryEl.innerHTML = badgeCfg
+            .filter(b => counts[b.key])
+            .map(b => `<div class="tl-summary-badge"><span class="dot ${b.dot}"></span>${b.label}: <strong>${counts[b.key]}</strong></div>`)
+            .join('') +
+            `<div class="tl-summary-badge">Total: <strong>${data.total}</strong></div>`;
+        summaryEl.style.display = 'flex';
+
+        // Group by date
+        const groups = {};
+        data.events.forEach(e => {
+            const d = e.ts ? e.ts.slice(0, 10) : 'Sin fecha';
+            if (!groups[d]) groups[d] = [];
+            groups[d].push(e);
+        });
+
+        let html = '';
+        Object.keys(groups).sort().reverse().forEach(day => {
+            const label = formatDay(day);
+            html += `<div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin: 18px 0 8px 0;">${label}</div>`;
+            html += '<div class="tl-list">';
+            groups[day].slice().reverse().forEach(e => {
+                const time = e.ts ? e.ts.slice(11, 16) : '--:--';
+                const typeKey = e.type === 'alerta' ? `alerta-${e.severity}` : e.type;
+                const tagClass = `tag-${typeKey}`;
+                const tagLabel = e.type === 'alerta'
+                    ? (e.severity === 'critical' ? '🔴 CRÍTICA' : e.severity === 'warning' ? '🟠 AVISO' : '🔵 INFO')
+                    : e.type === 'persona' ? '🟢 PERSONA' : '🟣 VEHÍCULO';
+
+                html += `
+                <div class="tl-item" data-type="${e.type}" data-sev="${e.severity || ''}">
+                    <div class="tl-item-header">
+                        <span class="tl-item-time">${time}</span>
+                        <span class="tl-item-tag ${tagClass}">${tagLabel}</span>
+                    </div>
+                    <div class="tl-item-title">${escHtml(e.title)}</div>
+                    ${e.detail ? `<div class="tl-item-detail">${escHtml(e.detail)}</div>` : ''}
+                </div>`;
+            });
+            html += '</div>';
+        });
+
+        resultsEl.innerHTML = html;
+    }
+
+    function formatDay(dateStr) {
+        if (dateStr === 'Sin fecha') return dateStr;
+        const d = new Date(dateStr + 'T12:00:00');
+        const today = new Date(); today.setHours(0,0,0,0);
+        const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+        if (d >= today) return 'Hoy — ' + d.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
+        if (d >= yesterday) return 'Ayer — ' + d.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
+        return d.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    }
+
+    function escHtml(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Profile/logout
+    document.getElementById('profileBtn')?.addEventListener('click', () => {
+        document.getElementById('profileDropdown')?.classList.toggle('hidden');
+    });
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+        window.location.href = '/';
+    });
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#profileBtn')) document.getElementById('profileDropdown')?.classList.add('hidden');
+        if (!e.target.closest('#languageBtn')) document.getElementById('languageDropdown')?.classList.add('hidden');
+</body>
+</html>

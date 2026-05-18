@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Vigilancia - Login</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Vigilancia Inteligente</h1>
+                <p>Sistema de monitoreo en tiempo real</p>
+            </div>
+
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        placeholder="admin" 
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <div class="form-group" style="margin-top:18px;">
+                    <label for="password">Contraseña</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="••••••••" 
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top:20px;">
+                    Iniciar sesión
+                </button>
+            </form>
+
+            <div id="loginError" class="alert alert-error hidden"></div>
+            <div id="loginSuccess" class="alert alert-success hidden"></div>
+
+            <div class="login-footer">
+                <p class="text-muted">Proyecto de Administración de Sistemas Informáticos en Red.<br>Manuel Leyes, 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts: Solo auth.js para login simple -->
+    <script src="/static/js/auth.js" defer></script>
+</body>
+</html>

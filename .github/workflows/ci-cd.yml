@@ -1,0 +1,171 @@
+name: CI/CD Pipeline - Test & Deploy
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # ============ TEST JOB ============
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10']
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements_lite.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements_lite.txt
+          pip install pytest pytest-cov httpx pydantic-settings
+      
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 backend --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings
+          flake8 backend --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      
+      - name: Run tests
+        run: |
+          python -m pytest tests/ -v --tb=short
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+  
+  # ============ BUILD JOB ============
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Build Docker image
+        run: |
+          docker build -t vigilancia:${{ github.sha }} .
+          docker tag vigilancia:${{ github.sha }} vigilancia:latest
+        
+      - name: Run Docker image
+        run: |
+          docker run -d -p 8000:8000 --name test-container vigilancia:latest
+          sleep 5
+          
+          # Test health check
+          curl -f http://localhost:8000/api/health || exit 1
+          
+          docker stop test-container || true
+      
+      - name: Health check
+        run: |
+          echo "✅ Docker image built successfully"
+          echo "✅ Health check passed"
+  
+  # ============ SECURITY JOB ============
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
+      
+      - name: Run Bandit (security check)
+        run: |
+          bandit -r backend -f json -o bandit-report.json || true
+          bandit -r backend --exit-zero
+      
+      - name: Check dependencies for vulnerabilities
+        run: |
+          safety check --json || true
+  
+  # ============ DEPLOY JOB ============
+  deploy:
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deployment initiated for commit ${{ github.sha }}"
+          echo "📊 Commit message:"
+          git log -1 --pretty=%B
+      
+      # En producción, aquí iría:
+      # - Autenticción a Docker Registry
+      # - Push de imagen a Docker Hub / ECR
+      # - SSH a servidor de producción
+      # - Restart del servicio
+      
+      - name: Deploy to production
+        run: |
+          echo "✅ Ready to deploy to production"
+          echo "📝 Next steps:"
+          echo "   1. docker push usuario/vigilancia:latest"
+          echo "   2. ssh user@production.server"
+          echo "   3. docker-compose pull && docker-compose up -d"
+
+  # ============ NOTIFICATION JOB ============
+  notify:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [test, build, security]
+    
+    steps:
+      - name: Check jobs status
+        run: |
+          echo "Job Status Summary:"
+          echo "✅ Test: ${{ needs.test.result }}"
+          echo "✅ Build: ${{ needs.build.result }}"
+          echo "✅ Security: ${{ needs.security.result }}"
+      
+      - name: Success notification
+        if: success()
+        run: |
+          echo "🎉 All checks passed!"
+          echo "Ready to merge and deploy."
+      
+      - name: Failure notification
+        if: failure()
+        run: |
+          echo "❌ Some checks failed!"
+          echo "Review the logs above."
+          exit 1

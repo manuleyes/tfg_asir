@@ -1,0 +1,66 @@
+# ─── Entorno virtual ───────────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ─── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ─── Modelo YOLO (descargado automáticamente por setup.py) ─────────────────────
+backend/yolov8x.pt
+backend/yolov8n.pt
+backend/yolov8s.pt
+backend/yolov8m.pt
+backend/yolov8l.pt
+*.pt
+*.onnx
+*.engine
+
+# ─── Base de datos ─────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ─── Imágenes capturadas por el sistema ────────────────────────────────────────
+images/
+crops/
+
+# ─── SSL / Certificados ────────────────────────────────────────────────────────
+backend/ssl/cert.pem
+backend/ssl/key.pem
+backend/ssl/*.pem
+backend/ssl/*.key
+backend/ssl/*.crt
+
+# ─── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+autorun/tunnel_url.txt
+
+# ─── Variables de entorno ──────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── IDEs ──────────────────────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Pytest / Coverage ─────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/

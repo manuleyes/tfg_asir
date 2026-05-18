@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Vigilancia Inteligente</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2 data-i18n="panel">Panel</h2>
+                <button id="toggleSidebar" class="btn-menu"></button>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="/dashboard" class="nav-item active" data-page="dashboard">
+                    <span class="text" data-i18n="dashboard">Dashboard</span>
+                </a>
+                <a href="/camaras" class="nav-item" data-page="camaras">
+                    <span class="text" data-i18n="camaras">Cámaras</span>
+                </a>
+                <a href="/personas" class="nav-item" data-page="personas" style="display:none"></a>
+                <a href="/vehiculos" class="nav-item" data-page="vehiculos" style="display:none"></a>
+                <a href="/detecciones" class="nav-item" data-page="detecciones">
+                    <span class="text" data-i18n="detecciones">Detecciones</span>
+                </a>
+                <a href="/alertas" class="nav-item" data-page="alertas">
+                    <span class="text" data-i18n="alertas">Alertas</span>
+                </a>
+                <a href="/bd" class="nav-item" data-page="bd">
+                    <span class="text" data-i18n="baseDatos">Base de Datos</span>
+                </a>
+                <a href="/reportes" class="nav-item" data-page="reportes">
+                    <span class="text" data-i18n="reportes">Reportes</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="top-bar-left"></div>
+                <div class="top-bar-right">
+                    <!-- Language Button -->
+                    <div class="menu-container">
+                        <button id="languageBtn" class="icon-btn" title="Idioma">
+                            <img id="langFlagDisplay" src="/static/img/flag-es.svg" alt="Idioma" class="btn-icon">
+                        </button>
+                        <div id="languageDropdown" class="dropdown hidden">
+                            <button class="dropdown-item" data-lang="es">
+                                <img src="/static/img/flag-es.svg" alt="Español" class="flag-small">
+                                Español
+                            </button>
+                            <button class="dropdown-item" data-lang="en">
+                                <img src="/static/img/flag-en.svg" alt="English" class="flag-small">
+                                English
+                            </button>
+                            <button class="dropdown-item" data-lang="jp">
+                                <img src="/static/img/flag-jp.svg" alt="日本語" class="flag-small">
+                                日本語
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Theme Button -->
+                    <div class="menu-container">
+                        <button id="darkModeToggle" class="icon-btn" title="Tema">
+                            <img id="themeIcon" src="/static/img/moon.svg" alt="Tema" class="btn-icon">
+                        </button>
+                    </div>
+
+                    <!-- Profile Button -->
+                    <div class="menu-container">
+                        <button id="profileBtn" class="icon-btn" title="Cuenta">
+                            <img src="/static/img/profile.svg" alt="Perfil" class="btn-icon">
+                        </button>
+                        <div id="profileDropdown" class="dropdown hidden">
+                            <button class="dropdown-item" id="viewProfileBtn" data-i18n="verPerfil">
+                                Ver perfil
+                            </button>
+                            <button class="dropdown-item logout-item" id="logoutBtn" data-i18n="cerrarSesion">
+                                Cerrar sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content">
+                <!-- Dashboard Page -->
+                <div id="page-dashboard" class="page active">
+                    <!-- Tarjetas de Conexión (servidor + cámara) en la misma fila -->
+                    <div class="grid grid-2" style="align-items:stretch;">
+                        <!-- Tarjeta de Conexión Remota -->
+                        <div class="card" style="display:flex;flex-direction:column;">
+                            <div class="card-header">
+                                <h2 data-i18n="conectarCliente">Conectar con el Servidor</h2>
+                            </div>
+                            <div class="connection-card" style="flex:1;display:flex;flex-direction:column;">
+                                <div class="connection-layout" style="flex:1;display:flex;flex-direction:column;">
+                                    <!-- ACCESO PUBLICO -->
+                                    <div class="access-section access-remote" style="width:100%;max-width:100%;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+                                        <div style="display:flex;gap:14px;align-items:stretch;flex:1;">
+                                            <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+                                                <p class="access-title" data-i18n="accesoRemoto">ACCESO PÚBLICO (HTTP)</p>
+                                                <div class="access-item">
+                                                    <label class="access-item-label" data-i18n="ipPublica">IP Pública:</label>
+                                                    <span id="remote-url" class="access-item-value">Cargando...</span>
+                                                </div>
+                                                <div class="access-item">
+                                                    <label class="access-item-label" data-i18n="urlRemota">URL:</label>
+                                                    <span id="remote-url-full" class="access-item-value">Cargando...</span>
+                                                </div>
+                                                <button id="btn-copy-remote" class="btn btn-primary btn-copy-full" style="margin-top:auto;" data-i18n="copiar">Copiar</button>
+                                            </div>
+                                            <div style="flex-shrink:0;text-align:center;display:flex;flex-direction:column;justify-content:center;">
+                                                <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">QR</div>
+                                                <div id="qr-server-remote" style="display:none;padding:4px;background:#fff;border-radius:6px;border:1px solid var(--border);"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Tarjeta Cliente Cámara Móvil -->
+                        <div class="card" style="display:flex;flex-direction:column;">
+                            <div class="card-header">
+                                <h2 data-i18n="conectarClienteCard">Conectar Cliente</h2>
+                            </div>
+                            <div class="connection-card" style="flex:1;display:flex;flex-direction:column;">
+                                <div class="connection-layout" style="flex:1;display:flex;flex-direction:column;">
+                                    <!-- CAMARA PUBLICA -->
+                                    <div class="access-section access-remote" style="width:100%;max-width:100%;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+                                        <div style="display:flex;gap:14px;align-items:stretch;flex:1;">
+                                            <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+                                                <p class="access-title" data-i18n="camaraPublica">CÁMARA PÚBLICA (HTTPS)</p>
+                                                <div class="access-item">
+                                                    <label class="access-item-label" data-i18n="urlLabel">URL:</label>
+                                                    <span id="cam-client-remote" class="access-item-value">Cargando...</span>
+                                                </div>
+                                                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;">
+                                                    <button id="btn-open-cam-remote" class="btn btn-primary btn-copy-full" data-i18n="abrir">Abrir</button>
+                                                </div>
+                                            </div>
+                                            <div style="flex-shrink:0;text-align:center;display:flex;flex-direction:column;justify-content:center;">
+                                                <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">QR</div>
+                                                <div id="qr-cam-remote" style="display:none;padding:4px;background:#fff;border-radius:6px;border:1px solid var(--border);"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-4">
+                        <div class="card stat-card">
+                            <div class="stat-icon stat-icon-cameras"></div>
+                            <div class="stat-content">
+                                <h3 data-i18n="camarasStat">Cámaras</h3>
+                                <p class="stat-value" id="stat-cameras">0</p>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-icon stat-icon-persons"></div>
+                            <div class="stat-content">
+                                <h3 data-i18n="personasStat">Personas</h3>
+                                <p class="stat-value" id="stat-persons">0</p>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-icon stat-icon-vehicles"></div>
+                            <div class="stat-content">
+                                <h3 data-i18n="vehiculosStat">Vehículos</h3>
+                                <p class="stat-value" id="stat-vehicles">0</p>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-icon stat-icon-alerts"></div>
+                            <div class="stat-content">
+                                <h3 data-i18n="alertasStat">Alertas</h3>
+                                <p class="stat-value" id="stat-alerts">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta Recursos del Servidor -->
+                    <div class="card" id="srv-stats-card">
+                        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                            <h2 data-i18n="recursosServidor">Recursos del Servidor</h2>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <span id="srv-stats-ts" style="font-size:11px;color:var(--text-muted);"></span>
+                                <button onclick="srvExportJSON()" style="padding:4px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg-secondary);cursor:pointer;font-size:12px;color:var(--text-primary);">JSON</button>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;padding:4px 0 8px;">
+                            <!-- Hora y Día -->
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:4px;">
+                                <span data-i18n="fechaHora" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">Fecha / Hora</span>
+                                <span id="srv-time" style="font-size:20px;font-weight:700;color:var(--text-primary);font-variant-numeric:tabular-nums;">—</span>
+                                <span id="srv-date" style="font-size:11px;color:var(--text-muted);"></span>
+                            </div>
+                            <!-- Estado servidor -->
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:4px;">
+                                <span data-i18n="estado" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">Estado</span>
+                                <span id="srv-status-dot" style="font-size:15px;font-weight:700;color:#34d399;"><span data-i18n="onlineText">● Online</span></span>
+                                <span id="srv-uptime" data-i18n="sistemaActivo" style="font-size:11px;color:var(--text-muted);">Sistema activo</span>
+                            </div>
+                            <!-- CPU -->
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
+                                <span data-i18n="CPU" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">CPU</span>
+                                <div style="display:flex;align-items:baseline;gap:4px;">
+                                    <span id="srv-cpu-pct" style="font-size:26px;font-weight:700;color:var(--text-primary);">—</span>
+                                    <span style="font-size:13px;color:var(--text-muted);">%</span>
+                                </div>
+                                <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;"><div id="srv-cpu-bar" style="height:100%;width:0%;background:#60a5fa;transition:width .3s;border-radius:2px;"></div></div>
+                                <span id="srv-cpu-cores" style="font-size:11px;color:var(--text-muted);"></span>
+                            </div>
+                            <!-- RAM sistema -->
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
+                                <span data-i18n="ramSistema" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">RAM sistema</span>
+                                <div style="display:flex;align-items:baseline;gap:4px;">
+                                    <span id="srv-ram-pct" style="font-size:26px;font-weight:700;color:var(--text-primary);">—</span>
+                                    <span style="font-size:13px;color:var(--text-muted);">%</span>
+                                </div>
+                                <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;"><div id="srv-ram-bar" style="height:100%;width:0%;background:#a78bfa;transition:width .5s;border-radius:2px;"></div></div>
+                                <span id="srv-ram-detail" style="font-size:11px;color:var(--text-muted);"></span>
+                            </div>
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
+                                <span data-i18n="ramProceso" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">RAM proceso</span>
+                                <div style="display:flex;align-items:baseline;gap:4px;">
+                                    <span id="srv-proc-ram" style="font-size:26px;font-weight:700;color:var(--text-primary);">—</span>
+                                    <span style="font-size:13px;color:var(--text-muted);">MB</span>
+                                </div>
+                                <span data-i18n="usoProcesoPython" style="font-size:11px;color:var(--text-muted);">Uso del proceso Python</span>
+                            </div>
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
+                                <span data-i18n="disco" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">Disco</span>
+                                <div style="display:flex;align-items:baseline;gap:4px;">
+                                    <span id="srv-disk-pct" style="font-size:26px;font-weight:700;color:var(--text-primary);">—</span>
+                                    <span style="font-size:13px;color:var(--text-muted);">%</span>
+                                </div>
+                                <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;"><div id="srv-disk-bar" style="height:100%;width:0%;background:#34d399;transition:width .5s;border-radius:2px;"></div></div>
+                                <span id="srv-disk-detail" style="font-size:11px;color:var(--text-muted);"></span>
+                            </div>
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
+                                <span data-i18n="redEnviado" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">Red ↑ enviado</span>
+                                <div style="display:flex;align-items:baseline;gap:4px;">
+                                    <span id="srv-net-sent" style="font-size:26px;font-weight:700;color:var(--text-primary);">—</span>
+                                    <span style="font-size:13px;color:var(--text-muted);">MB</span>
+                                </div>
+                                <span id="srv-net-sent-spd" style="font-size:11px;color:var(--text-muted);"></span>
+                            </div>
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
+                                <span data-i18n="redRecibido" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">Red ↓ recibido</span>
+                                <div style="display:flex;align-items:baseline;gap:4px;">
+                                    <span id="srv-net-recv" style="font-size:26px;font-weight:700;color:var(--text-primary);">—</span>
+                                    <span style="font-size:13px;color:var(--text-muted);">MB</span>
+                                </div>
+                                <span id="srv-net-recv-spd" style="font-size:11px;color:var(--text-muted);"></span>
+                            </div>
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
+                                <span data-i18n="colaYolo" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">Cola YOLO</span>
+                                <div style="display:flex;align-items:baseline;gap:4px;">
+                                    <span id="srv-queue" style="font-size:26px;font-weight:700;color:var(--text-primary);">0</span>
+                                    <span data-i18n="framesUnit" style="font-size:13px;color:var(--text-muted);">frames</span>
+                                </div>
+                                <span id="srv-frames-total" style="font-size:11px;color:var(--text-muted);"></span>
+                            </div>
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
+                                <span data-i18n="hilosActivos" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">Hilos activos</span>
+                                <div style="display:flex;align-items:baseline;gap:4px;">
+                                    <span id="srv-threads" style="font-size:26px;font-weight:700;color:var(--text-primary);">—</span>
+                                </div>
+                                <span data-i18n="threadsPython" style="font-size:11px;color:var(--text-muted);">Threads Python</span>
+                            </div>
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
+                                <span data-i18n="cpuProceso" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">CPU Proceso</span>
+                                <div style="display:flex;align-items:baseline;gap:4px;">
+                                    <span id="srv-proc-cpu" style="font-size:26px;font-weight:700;color:var(--text-primary);">—</span>
+                                    <span style="font-size:13px;color:var(--text-muted);">%</span>
+                                </div>
+                                <span data-i18n="usoCpuPython" style="font-size:11px;color:var(--text-muted);">Uso CPU Python</span>
+                            </div>
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;">
+                                <span data-i18n="discoES" style="font-size:11px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.06em;">Disco E/S</span>
+                                <span id="srv-disk-read-spd" style="font-size:14px;font-weight:700;color:var(--text-primary);">—</span>
+                                <span id="srv-disk-write-spd" style="font-size:11px;color:var(--text-muted);">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="grid-column:1/-1;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                            <h2 data-i18n="deteccionesRealTime" style="margin:0;">Detecciones en tiempo real</h2>
+                            <span id="rt-chart-status" data-i18n="esperandoDatos" style="font-size:12px;color:var(--text-muted);">Esperando datos…</span>
+                        </div>
+                        <canvas id="realtimeChart" style="width:100%;max-height:260px;"></canvas>
+                    </div>
+
+                    <div class="grid grid-2">
+                        <div class="card">
+                            <h2 data-i18n="estadoDelSistema">Estado del Sistema</h2>
+                                <div class="status-item">
+                                    <span data-i18n="statusApi">Status API</span>
+                                    <span class="badge badge-success" data-i18n="online">Online</span>
+                                </div>
+                                <div class="status-item">
+                                    <span data-i18n="baseDatos">Base de Datos</span>
+                                    <span class="badge badge-success" data-i18n="conectado">Conectado</span>
+                                </div>
+                                <div class="status-item">
+                                    <span data-i18n="servidor">Servidor</span>
+                                    <span class="badge badge-success" data-i18n="activoText">Activo</span>
+                                </div>
+                                <div class="status-item">
+                                    <span data-i18n="deteccionIA">Detección IA</span>
+                                    <span class="badge badge-success" data-i18n="online">Online</span>
+                                </div>
+                                <div class="status-item">
+                                    <span data-i18n="sslHttps">SSL / HTTPS</span>
+                                    <span class="badge badge-success" data-i18n="activoText">Activo</span>
+                                </div>
+                                <div class="status-item">
+                                    <span data-i18n="webSocket">WebSocket</span>
+                                    <span class="badge badge-success" id="ws-status-badge" data-i18n="activoText">Activo</span>
+                                </div>
+                        </div>
+
+                        <div class="card">
+                            <h2 data-i18n="ultimasDetecciones">Últimas Detecciones</h2>
+                            <div id="lastDetections" class="detections-list">
+                                <p class="text-muted" data-i18n="cargando">Cargando...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cámaras Page -->
+                <div id="page-camaras" class="page">
+
+                    <!-- ── HISTORIAL DE CLIENTES ── -->
+                    <div id="cam-tab-historial">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 data-i18n="historialClientes">Historial de Clientes</h2>
+                                <button class="btn btn-secondary btn-sm" onclick="camLoadRegistered()" data-i18n="actualizarBtn">↻ Actualizar</button>
+                            </div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="estado">Estado</th>
+                                        <th data-i18n="idNombre">ID / Nombre</th>
+                                        <th>IP</th>
+                                        <th data-i18n="primeraConexion">Primera conexión</th>
+                                        <th data-i18n="ultimaActividad">Última actividad</th>
+                                        <th>Frames</th>
+                                        <th>FPS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cam-registered-list">
+                                    <tr><td colspan="7" class="text-center text-muted">Cargando...</td></tr>
+                                </tbody>
+                            </table>
+                            <div style="padding:10px 14px;font-size:12px;color:var(--text-muted);">
+                                Solo se muestran dispositivos que han transmitido vídeo en esta sesión del servidor.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── FEEDS EN DIRECTO ── -->
+                    <div id="cam-tab-directo">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 data-i18n="feedsDirecto">Feeds en Directo</h2>
+                                <div style="display:flex;gap:8px;align-items:center;">
+                                    <span data-i18n="actualizacion" style="font-size:12px;color:var(--text-muted);">Actualización:</span>
+                                    <select id="cam-refresh-rate" class="input" style="width:auto;padding:4px 8px;font-size:13px;" onchange="camSetRefreshRate(this.value)">
+                                        <option value="500">500ms</option>
+                                        <option value="1000" selected>1s</option>
+                                        <option value="2000">2s</option>
+                                        <option value="5000">5s</option>
+                                    </select>
+                                    <button class="btn btn-secondary btn-sm" onclick="camRefreshFeeds()" data-i18n="recargar">Recargar</button>
+                                </div>
+                            </div>
+                            <div id="cam-no-feeds" style="padding:32px;text-align:center;color:var(--text-muted);display:none;">
+                                No hay c&aacute;maras transmitiendo. Conecta un dispositivo desde <a href="/camara-cliente" target="_blank" style="color:#60a5fa;">Camara Cliente</a>.
+                            </div>
+                            <div id="cam-feeds-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:4px 0 8px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- ── DETECCIONES EN TIEMPO REAL ── -->
+                    <div id="cam-tab-detecciones">
+                        <div class="card">
+                            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                                <h2 data-i18n="deteccionesRT">Detecciones en Tiempo Real</h2>
+                                <span id="live-detection-counter" style="display:none;font-size:13px;font-weight:600;background:rgba(74,144,226,.15);padding:4px 12px;border-radius:20px;color:var(--primary);"></span>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                                    <thead>
+                                        <tr style="border-bottom:1px solid var(--border);color:var(--text-muted);text-align:left;">
+                                            <th data-i18n="horaCol" style="padding:8px 12px;">Hora</th>
+                                            <th data-i18n="camaraCol" style="padding:8px 12px;">Cámara</th>
+                                            <th data-i18n="tipoCol" style="padding:8px 12px;">Tipo</th>
+                                            <th data-i18n="confianzaCol" style="padding:8px 12px;">Confianza</th>
+                                            <th data-i18n="posicionCol" style="padding:8px 12px;">Posición</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="live-detections-tbody">
+                                        <tr id="live-detections-empty"><td colspan="5" data-i18n="esperandoDetecciones" style="padding:24px;text-align:center;color:var(--text-muted);">Esperando detecciones... Conecta una cámara.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="padding:10px 14px;display:flex;gap:10px;border-top:1px solid var(--border);">
+                                <a href="/api/v2/search/items?limit=50" target="_blank" class="btn btn-secondary btn-sm">Buscar detecciones (JSON)</a>
+                                <a href="/api/v2/search/summary" target="_blank" class="btn btn-secondary btn-sm">Resumen BD</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detecciones Page (unifica personas + vehículos) -->
+                <div id="page-detecciones" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 data-i18n="detecciones">Detecciones</h2>
+                            <div class="flex-row-gap">
+                                <select id="deteccionTypeFilter" class="input" style="width:130px;" onchange="loadDetecciones()">
+                                    <option value="" data-i18n="todosFilter">Todos</option>
+                                    <option value="person" data-i18n="personas">Personas</option>
+                                    <option value="vehicle" data-i18n="vehiculos">Vehículos</option>
+                                </select>
+                                <input type="text" id="deteccionSearch" class="input-search" placeholder="Buscar...">
+                                <button class="btn btn-secondary btn-sm" onclick="exportToCSV('detecciones')">CSV</button>
+                                <button class="btn btn-secondary btn-sm" onclick="exportToExcel('detecciones')">Excel</button>
+                                <button class="btn btn-secondary btn-sm" onclick="exportToJSON('detecciones')">JSON</button>
+                            </div>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="fotoCol" style="width:60px;">Foto</th>
+                                    <th data-i18n="tipoCol">Tipo</th>
+                                    <th data-i18n="idDescripcion">ID / Descripción</th>
+                                    <th data-i18n="camaraCol">Cámara</th>
+                                    <th data-i18n="confianzaCol">Confianza</th>
+                                    <th data-i18n="vecesCol">Veces</th>
+                                    <th data-i18n="fechaHoraCol">Fecha y Hora</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deteccionesList">
+                                <tr><td colspan="7" class="text-center text-muted">Cargando detecciones...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Legacy hidden pages for router compat -->
+                <div id="page-personas" class="page" style="display:none"></div>
+                <div id="page-vehiculos" class="page" style="display:none"></div>
+
+                <!-- Alertas Page -->
+                <div id="page-alertas" class="page">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 data-i18n="alertasSistema">Alertas del Sistema</h2>
+                            <select id="alertFilter" class="input">
+                                <option value="" data-i18n="todosFilter">Todos</option>
+                                <option value="critical" data-i18n="criticasFilter">Críticas</option>
+                                <option value="warning" data-i18n="advertenciasFilter">Advertencias</option>
+                                <option value="info" data-i18n="informacionFilter">Información</option>
+                            </select>
+                        </div>
+
+                        <div id="alertsList" class="alerts-list">
+                            <p class="text-muted" data-i18n="cargando">Cargando alertas...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BD Page -->
+                <div id="page-bd" class="page">
+                    <!-- Page Header -->
+                    <div class="card" style="margin-bottom:16px;">
+                        <div class="card-header" style="flex-wrap:wrap;gap:12px;">
+                            <h2 data-i18n="baseDatos" style="margin:0;">Base de Datos</h2>
+                            <div class="bd-tabs" style="margin-bottom:0;">
+                                <button class="bd-tab active" data-tab="bd-tablas" data-i18n="tablasBD">Tablas</button>
+                                <button class="bd-tab" data-tab="bd-sql" data-i18n="consultaSQL">Consulta SQL</button>
+                                <button class="bd-tab" data-tab="bd-simple" data-i18n="consultasSimplificadas">Consultas Simplificadas</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── TAB: TABLAS ── -->
+                    <div id="bd-tablas" class="bd-panel active">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 data-i18n="tablasBDTitle">Tablas de la Base de Datos</h2>
+                                <button class="btn btn-secondary btn-sm" onclick="bdLoadTables()" data-i18n="recargar">Recargar</button>
+                            </div>
+                            <div id="bd-tables-list" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
+                            <div id="bd-table-content" style="display:none;">
+                                <div class="card-header" style="margin-bottom:8px;">
+                                    <h3 id="bd-table-title">—</h3>
+                                    <div style="display:flex;gap:8px;align-items:center;">
+                                        <span id="bd-table-info" style="font-size:13px;color:var(--text-muted);"></span>
+                                        <button class="btn btn-secondary btn-sm" id="bd-prev-btn" onclick="bdTablePage(-1)">&#8592; Anterior</button>
+                                        <button class="btn btn-secondary btn-sm" id="bd-next-btn" onclick="bdTablePage(1)">Siguiente &#8594;</button>
+                                    </div>
+                                </div>
+                                <div style="overflow-x:auto;">
+                                    <table class="table" id="bd-data-table">
+                                        <thead id="bd-data-thead"></thead>
+                                        <tbody id="bd-data-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── TAB: SQL ── -->
+                    <div id="bd-sql" class="bd-panel" style="display:none;">
+                        <div class="card">
+                            <h2 data-i18n="consultaSQLTitle">Consulta SQL (solo lectura)</h2>
+                            <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px;">Solo se permiten sentencias SELECT. Las operaciones de escritura están bloqueadas.</p>
+                            <div class="form-group">
+                                <textarea id="sqlQuery" class="input-textarea" rows="7"
+                                    placeholder="SELECT * FROM alertas WHERE severity = 'critical' ORDER BY created_at DESC LIMIT 20;"></textarea>
+                            </div>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+                                <button class="btn btn-primary" onclick="bdExecSQL()" data-i18n="ejecutar">Ejecutar</button>
+                                <button class="btn btn-secondary" onclick="document.getElementById('sqlQuery').value=''" data-i18n="limpiar">Limpiar</button>
+                            </div>
+                            <!-- Ejemplos rápidos -->
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+                                <span style="font-size:12px;color:var(--text-muted);align-self:center;">Ejemplos:</span>
+                                <button class="btn-chip" onclick="bdSetSQL('SELECT * FROM alertas ORDER BY created_at DESC LIMIT 50')">Alertas recientes</button>
+                                <button class="btn-chip" onclick="bdSetSQL('SELECT * FROM personas ORDER BY created_at DESC LIMIT 50')">Personas recientes</button>
+                                <button class="btn-chip" onclick="bdSetSQL('SELECT * FROM vehiculos ORDER BY created_at DESC LIMIT 50')">Vehículos recientes</button>
+                                <button class="btn-chip" onclick="bdSetSQL('SELECT severity, COUNT(*) as total FROM alertas GROUP BY severity')">Alertas por severidad</button>
+                                <button class="btn-chip" onclick="bdSetSQL('SELECT date(created_at) as dia, COUNT(*) as detecciones FROM personas GROUP BY dia ORDER BY dia DESC')">Personas por día</button>
+                            </div>
+                            <div id="bd-sql-result" style="display:none;">
+                                <div class="card-header" style="margin-bottom:8px;">
+                                    <h3>Resultado</h3>
+                                    <span id="bd-sql-count" style="font-size:13px;color:var(--text-muted);"></span>
+                                </div>
+                                <div style="overflow-x:auto;">
+                                    <table class="table" id="bd-sql-table">
+                                        <thead id="bd-sql-thead"></thead>
+                                        <tbody id="bd-sql-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div id="bd-sql-error" style="display:none;padding:12px;border-radius:8px;background:#fde8e8;color:#b91c1c;font-size:13px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- ── TAB: CONSULTAS SIMPLIFICADAS ── -->
+                    <div id="bd-simple" class="bd-panel" style="display:none;">
+                        <div class="card" style="margin-bottom:16px;">
+                            <h2 data-i18n="consultasSimplificadas">Consultas Simplificadas</h2>
+                            <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">Filtra eventos por rango de fechas, tipo y severidad sin necesidad de escribir SQL.</p>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px;">
+                                <div class="form-group">
+                                    <label>Fecha/Hora inicio</label>
+                                    <input type="datetime-local" id="qs-since" class="input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha/Hora fin</label>
+                                    <input type="datetime-local" id="qs-until" class="input">
+                                </div>
+                            </div>
+                            <!-- Presets rápidos -->
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+                                <span style="font-size:12px;color:var(--text-muted);align-self:center;">Rápido:</span>
+                                <button class="btn-chip" onclick="qsPreset(1)">Última hora</button>
+                                <button class="btn-chip" onclick="qsPreset(6)">Últimas 6h</button>
+                                <button class="btn-chip" onclick="qsPreset(24)">Últimas 24h</button>
+                                <button class="btn-chip" onclick="qsPreset(168)">Última semana</button>
+                                <button class="btn-chip" onclick="qsPreset(720)">Último mes</button>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:16px;">
+                                <!-- Tipos -->
+                                <div>
+                                    <label style="font-weight:600;font-size:13px;display:block;margin-bottom:8px;">Tipos de evento</label>
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer;">
+                                        <input type="checkbox" id="qs-alertas" checked style="accent-color:var(--primary);">
+                                        <span>Alertas</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer;">
+                                        <input type="checkbox" id="qs-personas" checked style="accent-color:var(--primary);">
+                                        <span>Personas</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                        <input type="checkbox" id="qs-vehiculos" checked style="accent-color:var(--primary);">
+                                        <span>Vehículos</span>
+                                    </label>
+                                </div>
+                                <!-- Severidad alertas -->
+                                <div>
+                                    <label style="font-weight:600;font-size:13px;display:block;margin-bottom:8px;">Severidad (alertas)</label>
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer;">
+                                        <input type="checkbox" id="qs-sev-critical" checked style="accent-color:#e74c3c;">
+                                        <span style="color:#e74c3c;font-weight:600;">Crítica</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer;">
+                                        <input type="checkbox" id="qs-sev-warning" checked style="accent-color:#f39c12;">
+                                        <span style="color:#f39c12;font-weight:600;">Advertencia</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                        <input type="checkbox" id="qs-sev-info" checked style="accent-color:#3498db;">
+                                        <span style="color:#3498db;font-weight:600;">Información</span>
+                                    </label>
+                                </div>
+                                <!-- Límite -->
+                                <div>
+                                    <label style="font-weight:600;font-size:13px;display:block;margin-bottom:8px;">Máx. resultados</label>
+                                    <select id="qs-limit" class="input">
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                        <option value="250" selected>250</option>
+                                        <option value="500">500</option>
+                                        <option value="1000">1000</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                <button class="btn btn-primary" onclick="qsSearch()">Buscar</button>
+                                <button class="btn btn-secondary" onclick="qsExportCSV()">Exportar CSV</button>
+                            </div>
+                        </div>
+                        <!-- Resultados -->
+                        <div id="qs-results-wrap" style="display:none;">
+                            <div class="card">
+                                <div class="card-header" style="margin-bottom:12px;">
+                                    <h3>Resultados de la consulta</h3>
+                                    <span id="qs-count" style="font-size:13px;color:var(--text-muted);"></span>
+                                </div>
+                                <div id="qs-timeline"></div>
+                            </div>
+                        </div>
+                        <div id="qs-error" style="display:none;padding:12px;border-radius:8px;background:#fde8e8;color:#b91c1c;font-size:13px;margin-top:12px;"></div>
+                    </div>
+                </div>
+
+                <!-- Reportes Page -->
+                <div id="page-reportes" class="page">
+                    <!-- Filtros -->
+                    <div class="card" style="margin-bottom:16px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+                            <h2 data-i18n="generarReporte" style="margin:0;">Generar Reporte</h2>
+                            <div style="display:flex;gap:6px;flex-wrap:wrap;" id="rep-presets">
+                                <button class="rep-preset-btn" data-p="1h">Última hora</button>
+                                <button class="rep-preset-btn" data-p="6h">6 horas</button>
+                                <button class="rep-preset-btn" data-p="24h">24 horas</button>
+                                <button class="rep-preset-btn" data-p="7d">Semana</button>
+                                <button class="rep-preset-btn" data-p="30d">Mes</button>
+                            </div>
+                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;">
+                            <div class="form-group" style="margin:0;flex:1;min-width:160px;">
+                                <label data-i18n="desdeLabel">Desde</label>
+                                <input type="datetime-local" id="repDesde" class="input">
+                            </div>
+                            <div class="form-group" style="margin:0;flex:1;min-width:160px;">
+                                <label data-i18n="hastaLabel">Hasta</label>
+                                <input type="datetime-local" id="repHasta" class="input">
+                            </div>
+                            <div class="form-group" style="margin:0;flex:1;min-width:130px;">
+                                <label data-i18n="tipoLabel">Tipo</label>
+                                <select id="reportType" class="input">
+                                    <option value="persons">Personas</option>
+                                    <option value="vehicles">Vehículos</option>
+                                    <option value="alerts">Alertas</option>
+                                    <option value="summary">Resumen</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin:0;flex:1;min-width:110px;">
+                                <label data-i18n="formatoLabel">Formato</label>
+                                <select id="reportFormat" class="input">
+                                    <option value="pdf">PDF</option>
+                                    <option value="csv">CSV</option>
+                                    <option value="json">JSON</option>
+                                </select>
+                            </div>
+                            <div style="display:flex;gap:8px;padding-bottom:2px;">
+                                <button class="btn btn-secondary" onclick="repPreview()" data-i18n="vistaPrevia">Vista previa</button>
+                                <button class="btn btn-primary" onclick="generateReport()" data-i18n="descargar">Descargar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Vista previa -->
+                    <div class="card" id="rep-preview-card" style="display:none;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                            <h3 style="margin:0;" id="rep-preview-title">Vista previa</h3>
+                            <span id="rep-preview-count" style="font-size:13px;color:var(--text-muted);"></span>
+                        </div>
+                        <div style="overflow-x:auto;">
+                            <table class="data-table" id="rep-preview-table">
+                                <thead id="rep-preview-thead"></thead>
+                                <tbody id="rep-preview-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detección en Vivo Page -->
+                <div id="page-live-detection" class="page">
+                    <iframe id="live-detection-frame" src="about:blank" class="fullscreen-iframe" data-src="/live-detection.html"></iframe>
+                </div>
+
+                <!-- Diagnóstico Page -->
+                <div id="page-diagnostico" class="page">
+                    <iframe id="diagnostico-frame" src="about:blank" class="fullscreen-iframe" data-src="/diagnostico.html"></iframe>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/camera-page.js" defer></script>
+    <script src="/static/js/bd-page.js" defer></script>
+    <script src="/static/js/utils.js?v=2" defer></script>
+    <script src="/static/js/i18n.js?v=2" defer></script>
+    <script src="/static/js/api.js?v=2" defer></script>
+    <script src="/static/js/auth.js?v=2" defer></script>
+    <script src="/static/js/session-check.js?v=2" defer></script>
+    <script src="/static/js/enhanced-dashboard.js?v=8" defer></script>
+    <script src="/static/js/main.js?v=7" defer></script>
+    
+    <!-- Theme, Language & User Management -->
+    <script src="/static/js/language.js?v=2" defer></script>
+    <script src="/static/js/darkmode.js?v=2" defer></script>
+    <script src="/static/js/user-profile.js?v=2" defer></script>
+    <script src="/static/js/profile-menu.js?v=2" defer></script>
+    
+    <!-- New Features -->
+    <script src="/static/js/toast-notifications.js?v=2" defer></script>
+    <script src="/static/js/activity-history.js?v=2" defer></script>
+    <script src="/static/js/avatar-manager.js?v=2" defer></script>
+    <script src="/static/js/password-validator.js?v=2" defer></script>
+    <script src="/static/js/keyboard-shortcuts.js?v=2" defer></script>
+    <script src="/static/js/global-search.js?v=2" defer></script>
+    <script src="/static/js/sidebar-toggle.js?v=2" defer></script>
+    <script src="/static/js/timezone-manager.js?v=2" defer></script>
+    
+    <!-- Other -->
+    <script src="/static/js/qrcode.min.js" defer></script>
+    <script src="/static/js/ip-display.js?v=3" defer></script>
+    <script src="/static/js/router.js?v=5" defer></script>
+    <script src="/static/js/test-buttons.js" defer></script>
+    <script src="/static/js/diagnostic.js" defer></script>
+
+    <!-- Nuevas funcionalidades -->
+    <script src="/static/js/websocket-client.js" defer></script>
+    <script src="/static/js/export-data.js" defer></script>
+    
+</body>
+</html>
