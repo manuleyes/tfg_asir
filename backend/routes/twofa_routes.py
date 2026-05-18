@@ -2,6 +2,7 @@
 routes/twofa_routes.py - Endpoints para 2FA (TOTP) y gestión de roles
 """
 from __future__ import annotations
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
@@ -70,12 +71,12 @@ class RoleUpdateRequest(BaseModel):
 
 
 class UserUpdateRequest(BaseModel):
-    email: str | None = None
-    phone: str | None = None
-    email_notifications: bool | None = None
-    notify_critical: bool | None = None
-    notify_warning: bool | None = None
-    phone_notifications: bool | None = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    email_notifications: Optional[bool] = None
+    notify_critical: Optional[bool] = None
+    notify_warning: Optional[bool] = None
+    phone_notifications: Optional[bool] = None
 
 
 class ChangePasswordRequest(BaseModel):

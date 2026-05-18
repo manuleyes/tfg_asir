@@ -3,6 +3,7 @@ Endpoint para recibir camera streaming por HTTP
 Mejor que UDP para WiFi/NAT
 """
 from __future__ import annotations
+from typing import Optional
 
 import base64
 import io
@@ -340,7 +341,7 @@ async def upload_camera_frame(request: Request, file: UploadFile = File(...), ca
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def _extract_dominant_color(frame: np.ndarray, box: dict) -> str | None:
+def _extract_dominant_color(frame: np.ndarray, box: dict) -> Optional[str]:
     """
     Extrae el color dominante de un vehículo a partir del crop del bounding box.
     Devuelve un nombre de color en español o None si no se puede determinar.

@@ -2,6 +2,7 @@
 Rutas para Cámaras - GET, POST, DELETE, etc
 """
 from __future__ import annotations
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -25,8 +26,8 @@ class CameraResponse(BaseModel):
     id: int
     name: str
     url: str
-    location: str | None = None
-    description: str | None = None
+    location: Optional[str] = None
+    description: Optional[str] = None
     is_active: bool
     created_at: object = None
     updated_at: object = None
