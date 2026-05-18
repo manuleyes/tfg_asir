@@ -100,7 +100,6 @@ async def active_detections():
     """
     Obtener últimas detecciones del stream en vivo
     """
-    global latest_detections
     if latest_detections:
         return {
             "status": "streaming",
@@ -142,7 +141,6 @@ async def streaming_status():
     """
     Estado actual del streaming
     """
-    global streaming_active
     return {
         "activo": streaming_active,
         "tiene_detecciones": latest_detections is not None,
