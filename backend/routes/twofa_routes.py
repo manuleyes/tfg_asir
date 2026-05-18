@@ -1,6 +1,7 @@
 """
 routes/twofa_routes.py - Endpoints para 2FA (TOTP) y gestión de roles
 """
+from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr

@@ -1,6 +1,7 @@
 """
 Rutas para Cámaras - GET, POST, DELETE, etc
 """
+from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
