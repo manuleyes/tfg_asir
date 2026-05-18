@@ -29,7 +29,7 @@ from pathlib import Path
 PROJECT_DIR  = Path(__file__).resolve().parent
 BACKEND_DIR  = PROJECT_DIR / "backend"
 VENV_DIR     = PROJECT_DIR / ".venv"
-REQUIREMENTS = BACKEND_DIR / "requirements.txt"
+REQUIREMENTS = BACKEND_DIR / "requirements_lite.txt"
 MODEL_PATH   = BACKEND_DIR / "yolov8x.pt"
 DB_FILE      = BACKEND_DIR / "vigilancia.db"
 
